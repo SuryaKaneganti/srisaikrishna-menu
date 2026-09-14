@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Sai Krishna Family Restaurant - Menu</title>
+    <style>
+        :root { --primary: #e63946; --bg: #121212; --card: #1e1e1e; --text: #ffffff; --accent: #ffb703; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        header { background: #000; text-align: center; padding: 20px; border-bottom: 2px solid var(--primary); }
+        header h1 { margin: 0; color: var(--accent); font-size: 1.6rem; }
+        header p { margin: 5px 0 0 0; font-size: 0.85rem; color: #aaa; }
+        .controls { padding: 10px; position: sticky; top: 0; background: var(--bg); z-index: 100; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; }
+        .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
+        .veg { background: green; color: white; }
+        .non-veg { background: red; color: white; }
+        .egg { background: yellow; color: black; }
+        .category-title { color: var(--accent); border-bottom: 1px solid #333; padding: 10px; margin-top: 20px; text-transform: uppercase; font-size: 1.1rem; }
+        .menu-grid { padding: 10px; display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 600px) { .menu-grid { grid-template-columns: 1fr 1fr; } }
+        .item-card { background: var(--card); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2a2a2a; }
+        .item-name { font-weight: bold; font-size: 1rem; }
+        .item-desc { font-size: 0.8rem; color: #888; margin-top: 4px; }
+        .item-price { font-weight: bold; color: var(--accent); font-size: 1.1rem; }
+        .admin-btn { position: fixed; bottom: 15px; right: 15px; background: var(--primary); border: none; color: white; padding: 12px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>SRI SAI KRISHNA</h1>
+    <p>FAMILY RESTAURANT</p>
+    <p style="font-style: italic; font-size: 0.75rem; color: var(--accent);">Spices that Dance, Rice that Sings</p>
+</header>
+
+<div class="controls">
+    <input type="text" id="searchInput" placeholder="Search dishes (e.g., Biryani, Paneer)..." onkeyup="filterMenu()">
+</div>
+
+<div id="menuContainer"></div>
+
+<button class="admin-btn" onclick="openAdmin()">⚙️</button>
+
+<script>
+    // Initial Menu Data synced with PDF
+    let menuData = JSON.parse(localStorage.getItem('ssk_menu')) || [
+        {cat: "Biryani", name: "Chicken Dum Biryani", price: 220, type: "Non-Veg", desc: "Authentic Hyderabadi chicken dum biryani"},
+        {cat: "Biryani", name: "Sri Sai Krishna Spl. Biryani", price: 370, type: "Non-Veg", desc: "House special biryani (Dining Only)"},
+        {cat: "Biryani", name: "Mutton Biryani", price: 370, type: "Non-Veg", desc: "Tender mutton dum biryani"},
+        {cat: "Starters - Non-Veg", name: "Apollo Chicken", price: 340, type: "Non-Veg", desc: "Hyderabadi style fried chicken"},
+        {cat: "Starters - Non-Veg", name: "Chicken 65 (B/L)", price: 270, type: "Non-Veg", desc: "Classic South Indian chicken 65"},
+        {cat: "Curries - Veg", name: "Paneer Butter Masala", price: 220, type: "Veg", desc: "Rich tomato butter paneer gravy"}
+        // Additional items load dynamically
+    ];
+
+    function renderMenu(items) {
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = '';
+        const categories = [...new Set(items.map(i => i.cat))];
+
+        categories.forEach(cat => {
+            const catTitle = document.createElement('div');
+            catTitle.className = 'category-title';
+            catTitle.innerText = cat;
+            container.appendChild(catTitle);
+
+            const grid = document.createElement('div');
+            grid.className = 'menu-grid';
+
+            items.filter(i => i.cat === cat).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div>
+                        <div class="item-name">${item.name} <span class="badge ${item.type.toLowerCase()}">${item.type}</span></div>
+                        <div class="item-desc">${item.desc}</div>
+                    </div>
+                    <div class="item-price">₹${item.price}</div>
+                `;
+                grid.appendChild(card);
+            });
+            container.appendChild(grid);
+        });
+    }
+
+    function filterMenu() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = menuData.filter(i => i.name.toLowerCase().includes(query) || i.cat.toLowerCase().includes(query));
+        renderMenu(filtered);
+    }
+
+    function openAdmin() {
+        const pin = prompt("Enter Admin Passcode:");
+        if (pin === "1234") { // Change your security PIN here
+            const action = prompt("Options:\n1. Edit Price\n2. Add Item\n3. Reset Data\nEnter option number:");
+            if (action === "1") {
+                const itemName = prompt("Enter exact Item Name to update price:");
+                const item = menuData.find(i => i.name.toLowerCase() === itemName.toLowerCase());
+                if (item) {
+                    const newPrice = prompt(`Enter new price for ${item.name}:`, item.price);
+                    if (newPrice) {
+                        item.price = parseInt(newPrice);
+                        localStorage.setItem('ssk_menu', JSON.stringify(menuData));
+                        alert("Price updated!");
+                        renderMenu(menuData);
+                    }
+                } else { alert("Item not found!"); }
+            }
+        } else if (pin !== null) {
+            alert("Incorrect PIN!");
+        }
+    }
+
+    renderMenu(menuData);
+</script>
+</body>
+</html>
