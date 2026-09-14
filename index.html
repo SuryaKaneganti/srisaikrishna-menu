@@ -6,36 +6,47 @@
     <title>Sri Sai Krishna Family Restaurant - Menu</title>
     <style>
         :root { --primary: #e63946; --bg: #121212; --card: #1e1e1e; --text: #ffffff; --accent: #ffb703; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
-        header { background: #000; text-align: center; padding: 20px; border-bottom: 2px solid var(--primary); }
-        header h1 { margin: 0; color: var(--accent); font-size: 1.6rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 30px; }
+        header { background: #000; text-align: center; padding: 20px 10px; border-bottom: 2px solid var(--primary); }
+        .logo-container { margin-bottom: 10px; }
+        .logo-container img { max-width: 120px; height: auto; border-radius: 50%; border: 2px solid var(--accent); }
+        header h1 { margin: 0; color: var(--accent); font-size: 1.6rem; letter-spacing: 1px; }
         header p { margin: 5px 0 0 0; font-size: 0.85rem; color: #aaa; }
-        .controls { padding: 10px; position: sticky; top: 0; background: var(--bg); z-index: 100; display: flex; gap: 10px; }
-        input[type="text"] { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; }
+        .controls { padding: 10px; position: sticky; top: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #222; }
+        input[type="text"] { padding: 12px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; font-size: 0.95rem; }
+        .cat-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .cat-pills::-webkit-scrollbar { display: none; }
+        .pill { background: #222; color: #ccc; border: 1px solid #444; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
+        .pill.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold; }
         .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
-        .veg { background: green; color: white; }
-        .non-veg { background: red; color: white; }
-        .egg { background: yellow; color: black; }
-        .category-title { color: var(--accent); border-bottom: 1px solid #333; padding: 10px; margin-top: 20px; text-transform: uppercase; font-size: 1.1rem; }
+        .veg { background: #2e7d32; color: white; }
+        .non-veg { background: #c62828; color: white; }
+        .egg { background: #fbc02d; color: black; }
+        .category-title { color: var(--accent); border-bottom: 1px solid #333; padding: 10px; margin-top: 20px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px; }
         .menu-grid { padding: 10px; display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 600px) { .menu-grid { grid-template-columns: 1fr 1fr; } }
         .item-card { background: var(--card); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2a2a2a; }
-        .item-name { font-weight: bold; font-size: 1rem; }
+        .item-name { font-weight: bold; font-size: 0.95rem; }
         .item-desc { font-size: 0.8rem; color: #888; margin-top: 4px; }
         .item-price { font-weight: bold; color: var(--accent); font-size: 1.1rem; }
-        .admin-btn { position: fixed; bottom: 15px; right: 15px; background: var(--primary); border: none; color: white; padding: 12px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .admin-btn { position: fixed; bottom: 15px; right: 15px; background: var(--primary); border: none; color: white; padding: 12px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 200; }
     </style>
 </head>
 <body>
 
 <header>
+    <div class="logo-container">
+        <!-- Paste your image URL into the src attribute below -->
+        <img id="restaurantLogo" src="https://via.placeholder.com/120?text=SK+Logo" alt="Sri Sai Krishna Logo">
+    </div>
     <h1>SRI SAI KRISHNA</h1>
     <p>FAMILY RESTAURANT</p>
-    <p style="font-style: italic; font-size: 0.75rem; color: var(--accent);">Spices that Dance, Rice that Sings</p>
+    <p style="font-style: italic; font-size: 0.75rem; color: var(--accent); margin-top: 4px;">Spices that Dance, Rice that Sings</p>
 </header>
 
 <div class="controls">
-    <input type="text" id="searchInput" placeholder="Search dishes (e.g., Biryani, Paneer)..." onkeyup="filterMenu()">
+    <input type="text" id="searchInput" placeholder="Search dishes (e.g., Biryani, Paneer, Soup)..." onkeyup="filterMenu()">
+    <div class="cat-pills" id="categoryPills"></div>
 </div>
 
 <div id="menuContainer"></div>
@@ -43,20 +54,251 @@
 <button class="admin-btn" onclick="openAdmin()">⚙️</button>
 
 <script>
-    // Initial Menu Data synced with PDF
-    let menuData = JSON.parse(localStorage.getItem('ssk_menu')) || [
-        {cat: "Biryani", name: "Chicken Dum Biryani", price: 220, type: "Non-Veg", desc: "Authentic Hyderabadi chicken dum biryani"},
-        {cat: "Biryani", name: "Sri Sai Krishna Spl. Biryani", price: 370, type: "Non-Veg", desc: "House special biryani (Dining Only)"},
-        {cat: "Biryani", name: "Mutton Biryani", price: 370, type: "Non-Veg", desc: "Tender mutton dum biryani"},
-        {cat: "Starters - Non-Veg", name: "Apollo Chicken", price: 340, type: "Non-Veg", desc: "Hyderabadi style fried chicken"},
+    const fullDataset = [
+        {cat: "Soups", name: "Chicken Sweet Corn Soup", price: 100, type: "Non-Veg", desc: "Non-Veg Soup"},
+        {cat: "Soups", name: "Chicken Hot & Sour Soup", price: 100, type: "Non-Veg", desc: "Non-Veg Soup"},
+        {cat: "Soups", name: "Tomato Soup", price: 70, type: "Veg", desc: "Veg Soup"},
+        {cat: "Soups", name: "Veg Hot & Sour Soup", price: 70, type: "Veg", desc: "Veg Soup"},
+        {cat: "Soups", name: "Veg Sweet Corn Soup", price: 80, type: "Veg", desc: "Veg Soup"},
+        {cat: "Soups", name: "Lemon Coriander Soup (Chicken)", price: 100, type: "Non-Veg", desc: "Non-Veg Soup"},
+        {cat: "Soups", name: "Lemon Coriander Soup (Veg)", price: 80, type: "Veg", desc: "Veg Soup"},
+        {cat: "Tandoori & Kabab", name: "Tandoori Chicken Full", price: 480, type: "Non-Veg", desc: "Clay oven roasted chicken"},
+        {cat: "Tandoori & Kabab", name: "Tandoori Chicken Half", price: 270, type: "Non-Veg", desc: "Clay oven roasted chicken"},
+        {cat: "Tandoori & Kabab", name: "Kalmi Kabab Full", price: 370, type: "Non-Veg", desc: "Marinated drumsticks"},
+        {cat: "Tandoori & Kabab", name: "Kalmi Kabab Half", price: 200, type: "Non-Veg", desc: "Marinated drumsticks"},
+        {cat: "Tandoori & Kabab", name: "Chicken Tikka (B/L) Full", price: 370, type: "Non-Veg", desc: "Boneless tender chicken tikka"},
+        {cat: "Tandoori & Kabab", name: "Chicken Tikka (Half)", price: 200, type: "Non-Veg", desc: "Boneless tender chicken tikka"},
+        {cat: "Tandoori & Kabab", name: "Malai Tikka", price: 400, type: "Non-Veg", desc: "Rich creamy marinated chicken tikka"},
+        {cat: "Tandoori & Kabab", name: "Paneer Tikka", price: 320, type: "Veg", desc: "Cottage cheese grilled in tandoor"},
+        {cat: "Tandoori & Kabab", name: "Fish Tikka", price: 420, type: "Non-Veg", desc: "Marinated grilled fish tikka"},
+        {cat: "Starters - Non-Veg", name: "Chicken Fry Bone", price: 240, type: "Non-Veg", desc: "Traditional fried chicken"},
+        {cat: "Starters - Non-Veg", name: "Chicken Fry (B/L)", price: 270, type: "Non-Veg", desc: "Boneless chicken fry"},
+        {cat: "Starters - Non-Veg", name: "Chilli Chicken", price: 270, type: "Non-Veg", desc: "Spicy Indo-Chinese chicken"},
         {cat: "Starters - Non-Veg", name: "Chicken 65 (B/L)", price: 270, type: "Non-Veg", desc: "Classic South Indian chicken 65"},
-        {cat: "Curries - Veg", name: "Paneer Butter Masala", price: 220, type: "Veg", desc: "Rich tomato butter paneer gravy"}
-        // Additional items load dynamically
+        {cat: "Starters - Non-Veg", name: "Chicken Manchuria", price: 270, type: "Non-Veg", desc: "Tossed in Manchurian sauce"},
+        {cat: "Starters - Non-Veg", name: "Chicken Joint Fry / Roast (2 Pcs)", price: 260, type: "Non-Veg", desc: "2 whole chicken leg joints"},
+        {cat: "Starters - Non-Veg", name: "Chicken Fried Kabab (Bone)", price: 300, type: "Non-Veg", desc: "Crispy fried kabab"},
+        {cat: "Starters - Non-Veg", name: "Coriander Chicken (B/L)", price: 320, type: "Non-Veg", desc: "Flavored with fresh coriander"},
+        {cat: "Starters - Non-Veg", name: "Apollo Chicken", price: 340, type: "Non-Veg", desc: "Hyderabadi style fried chicken"},
+        {cat: "Starters - Non-Veg", name: "Spicy Fried Chicken", price: 370, type: "Non-Veg", desc: "Extra hot & crispy"},
+        {cat: "Starters - Non-Veg", name: "Dragon Chicken", price: 340, type: "Non-Veg", desc: "Spicy sweet dragon style"},
+        {cat: "Starters - Non-Veg", name: "Chicken Shastic", price: 340, type: "Non-Veg", desc: "Indo-Chinese sizzler style"},
+        {cat: "Starters - Non-Veg", name: "Chicken 555", price: 370, type: "Non-Veg", desc: "Chef special spicy chicken"},
+        {cat: "Starters - Non-Veg", name: "Hongkong Chicken", price: 340, type: "Non-Veg", desc: "Hongkong style sweet & spicy"},
+        {cat: "Starters - Non-Veg", name: "Pepper Chicken (B/L)", price: 370, type: "Non-Veg", desc: "Black pepper tossed chicken"},
+        {cat: "Starters - Non-Veg", name: "Sehezwana Chicken (B/L)", price: 340, type: "Non-Veg", desc: "Schezwan style boneless chicken"},
+        {cat: "Starters - Non-Veg", name: "Chicken Majestic (B/L)", price: 370, type: "Non-Veg", desc: "Hyderabadi starter with curd and mint"},
+        {cat: "Starters - Non-Veg", name: "Cashew Nut Chicken", price: 350, type: "Non-Veg", desc: "Chicken tossed with roasted cashews"},
+        {cat: "Starters - Non-Veg", name: "Chicken Pakoda", price: 350, type: "Non-Veg", desc: "Crispy evening fried chicken"},
+        {cat: "Starters - Non-Veg", name: "Spicy Fried Chicken Lollipop", price: 360, type: "Non-Veg", desc: "Spicy lollipop fry"},
+        {cat: "Starters - Non-Veg", name: "Chicken Lollypop (Full)", price: 340, type: "Non-Veg", desc: "Classic chicken lollipops"},
+        {cat: "Starters - Non-Veg", name: "Chicken Lollypop (Half)", price: 190, type: "Non-Veg", desc: "Classic chicken lollipops"},
+        {cat: "Starters - Non-Veg", name: "Chicken Wings Dry (Full)", price: 300, type: "Non-Veg", desc: "Dry seasoned wings"},
+        {cat: "Starters - Non-Veg", name: "Chicken Wings Dry (Half)", price: 170, type: "Non-Veg", desc: "Dry seasoned wings"},
+        {cat: "Starters - Non-Veg", name: "Chicken Wings 65", price: 320, type: "Non-Veg", desc: "Wings in 65 masala"},
+        {cat: "Starters - Non-Veg", name: "Chicken Roast", price: 240, type: "Non-Veg", desc: "Slow-roasted spiced chicken"},
+        {cat: "Starters - Seafood", name: "Spicy Fried Fish", price: 370, type: "Non-Veg", desc: "Deep fried fish in local spices"},
+        {cat: "Starters - Seafood", name: "Apollo Fish", price: 370, type: "Non-Veg", desc: "Hyderabadi classic fish starter"},
+        {cat: "Starters - Seafood", name: "Chilli Fish", price: 360, type: "Non-Veg", desc: "Tangy chilli fish"},
+        {cat: "Starters - Seafood", name: "Fish Manchuria", price: 370, type: "Non-Veg", desc: "Fish tossed in Manchurian sauce"},
+        {cat: "Starters - Seafood", name: "Fish 65", price: 360, type: "Non-Veg", desc: "Deep fried fish 65 style"},
+        {cat: "Starters - Seafood", name: "Fish Fry (B/L)", price: 350, type: "Non-Veg", desc: "Boneless fish pan fry"},
+        {cat: "Starters - Seafood", name: "Prawns Fry", price: 350, type: "Non-Veg", desc: "Crispy prawn fry"},
+        {cat: "Starters - Seafood", name: "Loose Prawns", price: 370, type: "Non-Veg", desc: "Crispy loose fried prawns"},
+        {cat: "Starters - Seafood", name: "Prawns 65", price: 360, type: "Non-Veg", desc: "Spicy prawn 65"},
+        {cat: "Starters - Seafood", name: "Chilli Prawns", price: 360, type: "Non-Veg", desc: "Chilli garlic prawns"},
+        {cat: "Starters - Seafood", name: "Prawns Manchuria", price: 370, type: "Non-Veg", desc: "Prawns Manchurian sauce"},
+        {cat: "Starters - Seafood", name: "Hongkong Prawns", price: 370, type: "Non-Veg", desc: "Hongkong style prawns"},
+        {cat: "Starters - Seafood", name: "Pepper Prawns", price: 370, type: "Non-Veg", desc: "Black pepper tossed prawns"},
+        {cat: "Breads & Rotis", name: "Butter Naan", price: 40, type: "Veg", desc: "Soft Indian flatbread with butter"},
+        {cat: "Breads & Rotis", name: "Plain Naan", price: 35, type: "Veg", desc: "Classic tandoori naan"},
+        {cat: "Breads & Rotis", name: "Garlic Naan", price: 50, type: "Veg", desc: "Naan topped with garlic and butter"},
+        {cat: "Breads & Rotis", name: "Panneer Naan", price: 50, type: "Veg", desc: "Stuffed paneer flatbread"},
+        {cat: "Breads & Rotis", name: "Alu Parota", price: 40, type: "Veg", desc: "Spiced potato stuffed paratha"},
+        {cat: "Breads & Rotis", name: "Masala Kulcha", price: 45, type: "Veg", desc: "Spiced stuffed kulcha"},
+        {cat: "Breads & Rotis", name: "Paneer Kulcha", price: 50, type: "Veg", desc: "Paneer stuffed kulcha"},
+        {cat: "Breads & Rotis", name: "Stuffed Kulcha", price: 45, type: "Veg", desc: "Mix veg stuffed kulcha"},
+        {cat: "Breads & Rotis", name: "Tandoori Roti", price: 20, type: "Veg", desc: "Whole wheat tandoori roti"},
+        {cat: "Breads & Rotis", name: "Butter Roti", price: 25, type: "Veg", desc: "Tandoori roti with butter"},
+        {cat: "Breads & Rotis", name: "Pulka", price: 10, type: "Veg", desc: "Soft phulka"},
+        {cat: "Starters - Veg", name: "Veg Manchurian Dry", price: 170, type: "Veg", desc: "Fried veg dumplings in sauce"},
+        {cat: "Starters - Veg", name: "Veg 65 Dry", price: 180, type: "Veg", desc: "Mixed veg in 65 style"},
+        {cat: "Starters - Veg", name: "Schezwan Veg", price: 200, type: "Veg", desc: "Spicy Schezwan veg"},
+        {cat: "Starters - Veg", name: "Baby Corn 65", price: 220, type: "Veg", desc: "Crispy baby corn 65"},
+        {cat: "Starters - Veg", name: "Chilli Baby Corn", price: 220, type: "Veg", desc: "Chilli garlic baby corn"},
+        {cat: "Starters - Veg", name: "Baby Corn Manchurian", price: 220, type: "Veg", desc: "Baby corn Manchurian sauce"},
+        {cat: "Starters - Veg", name: "Crispy Baby Corn", price: 240, type: "Veg", desc: "Deep fried crispy baby corn"},
+        {cat: "Starters - Veg", name: "Golden Baby Corn", price: 220, type: "Veg", desc: "Golden fried baby corn"},
+        {cat: "Starters - Veg", name: "Chilli Mushroom", price: 220, type: "Veg", desc: "Spicy chilli mushroom"},
+        {cat: "Starters - Veg", name: "Mushroom 65 / Manchuria", price: 220, type: "Veg", desc: "Mushroom 65 or Manchurian"},
+        {cat: "Starters - Veg", name: "Panneer 65 / Manchuria", price: 220, type: "Veg", desc: "Paneer 65 or Manchurian"},
+        {cat: "Starters - Veg", name: "Chilli Panneer", price: 220, type: "Veg", desc: "Indo-Chinese chilli paneer"},
+        {cat: "Starters - Veg", name: "Panneer Pakoda", price: 240, type: "Veg", desc: "Crispy paneer fritters"},
+        {cat: "Starters - Veg", name: "Pepper Panneer", price: 240, type: "Veg", desc: "Black pepper paneer"},
+        {cat: "Starters - Veg", name: "Panneer Majestics", price: 270, type: "Veg", desc: "Hyderabadi style paneer starter"},
+        {cat: "Starters - Veg", name: "Schezwan Panneer", price: 240, type: "Veg", desc: "Spicy Schezwan paneer"},
+        {cat: "Starters - Veg", name: "Veg Pakoda", price: 170, type: "Veg", desc: "Crispy vegetable fritters"},
+        {cat: "Starters - Veg", name: "Gobi 65 (Seasonal)", price: 150, type: "Veg", desc: "Cauliflower 65"},
+        {cat: "Starters - Veg", name: "Chilli Gobi", price: 150, type: "Veg", desc: "Chilli cauliflower"},
+        {cat: "Starters - Veg", name: "Gobi Manchurian", price: 150, type: "Veg", desc: "Cauliflower Manchurian"},
+        {cat: "Starters - Veg", name: "Aloo 65", price: 140, type: "Veg", desc: "Spiced potato 65"},
+        {cat: "Starters - Veg", name: "Crispy Corn", price: 120, type: "Veg", desc: "Crispy fried sweet corn"},
+        {cat: "Biryani", name: "Golden Biryani", price: 370, type: "Non-Veg", desc: "Chef special golden rice biryani"},
+        {cat: "Biryani", name: "Sri Sai Krishna Spl. Biryani", price: 370, type: "Non-Veg", desc: "House special biryani (Dining Only)"},
+        {cat: "Biryani", name: "Chicken Dum Biryani", price: 220, type: "Non-Veg", desc: "Authentic Hyderabadi chicken dum biryani"},
+        {cat: "Biryani", name: "Mini Chicken Biryani", price: 150, type: "Non-Veg", desc: "Single portion chicken biryani"},
+        {cat: "Biryani", name: "Jumbo Pack (Takeaway Only)", price: 320, type: "Non-Veg", desc: "Family takeaway biryani pack"},
+        {cat: "Biryani", name: "Chicken Biryani (Fry)", price: 230, type: "Non-Veg", desc: "Biryani rice with fried chicken"},
+        {cat: "Biryani", name: "Spl. Chicken Biryani", price: 240, type: "Non-Veg", desc: "Special chicken biryani portion"},
+        {cat: "Biryani", name: "Joint Biryani", price: 240, type: "Non-Veg", desc: "Biryani served with leg joint"},
+        {cat: "Biryani", name: "Lollypop Biryani", price: 320, type: "Non-Veg", desc: "Biryani topped with chicken lollipops"},
+        {cat: "Biryani", name: "Wings Biryani", price: 300, type: "Non-Veg", desc: "Biryani with spicy chicken wings"},
+        {cat: "Biryani", name: "Kalmi Biryani", price: 320, type: "Non-Veg", desc: "Biryani with kalmi kabab"},
+        {cat: "Biryani", name: "Tikka Biryani", price: 370, type: "Non-Veg", desc: "Biryani topped with chicken tikka"},
+        {cat: "Biryani", name: "Tandoori Biryani (Full)", price: 670, type: "Non-Veg", desc: "Tandoori chicken biryani full"},
+        {cat: "Biryani", name: "Tandoori Biryani (Half)", price: 350, type: "Non-Veg", desc: "Tandoori chicken biryani half"},
+        {cat: "Biryani", name: "Afghani Biryani", price: 320, type: "Non-Veg", desc: "Rich Afghani style biryani"},
+        {cat: "Biryani", name: "Mugalai Biryani", price: 260, type: "Non-Veg", desc: "Mughlai style aromatic biryani"},
+        {cat: "Biryani", name: "Mutton Biryani", price: 370, type: "Non-Veg", desc: "Tender mutton dum biryani"},
+        {cat: "Biryani", name: "Prawns Biryani", price: 320, type: "Non-Veg", desc: "Spicy prawn biryani"},
+        {cat: "Biryani", name: "Prawns Mugalai Biryani", price: 340, type: "Non-Veg", desc: "Rich Mughlai style prawn biryani"},
+        {cat: "Biryani", name: "Fish Biryani", price: 320, type: "Non-Veg", desc: "Boneless fish biryani"},
+        {cat: "Biryani", name: "Egg Biryani", price: 180, type: "Egg", desc: "Biryani served with boiled eggs"},
+        {cat: "Biryani", name: "Veg Biryani", price: 170, type: "Veg", desc: "Aromatic vegetable biryani"},
+        {cat: "Biryani", name: "Plain Biryani", price: 140, type: "Veg", desc: "Kuska / Biryani rice"},
+        {cat: "Biryani", name: "Panneer Biryani", price: 220, type: "Veg", desc: "Biryani rice topped with paneer"},
+        {cat: "Biryani", name: "Mushroom Biryani", price: 220, type: "Veg", desc: "Mushroom biryani"},
+        {cat: "Fried Rice", name: "Chicken Fried Rice", price: 220, type: "Non-Veg", desc: "Classic chicken fried rice"},
+        {cat: "Fried Rice", name: "Spl. Chicken Fried Rice", price: 240, type: "Non-Veg", desc: "Special chicken fried rice"},
+        {cat: "Fried Rice", name: "Schezwan Chicken Fried Rice", price: 240, type: "Non-Veg", desc: "Spicy Schezwan fried rice"},
+        {cat: "Fried Rice", name: "Thai Chicken Fried Rice", price: 300, type: "Non-Veg", desc: "Thai style chicken fried rice"},
+        {cat: "Fried Rice", name: "Chicken Hakka Fried Rice", price: 240, type: "Non-Veg", desc: "Hakka style chicken rice"},
+        {cat: "Fried Rice", name: "Egg Fried Rice", price: 180, type: "Egg", desc: "Classic egg fried rice"},
+        {cat: "Fried Rice", name: "Mixed Fried Rice", price: 350, type: "Non-Veg", desc: "Chicken, prawn, and egg fried rice"},
+        {cat: "Fried Rice", name: "Prawns Fried Rice", price: 310, type: "Non-Veg", desc: "Prawn fried rice"},
+        {cat: "Fried Rice", name: "Spl. Prawns Fried Rice", price: 330, type: "Non-Veg", desc: "Special prawn fried rice"},
+        {cat: "Fried Rice", name: "Spl. Fish Fried Rice", price: 340, type: "Non-Veg", desc: "Special fish fried rice"},
+        {cat: "Fried Rice", name: "Schezwan Veg Fried Rice", price: 190, type: "Veg", desc: "Spicy Schezwan veg rice"},
+        {cat: "Fried Rice", name: "Vegetable Fried Rice", price: 160, type: "Veg", desc: "Classic vegetable fried rice"},
+        {cat: "Fried Rice", name: "Spl. Veg Fried Rice", price: 190, type: "Veg", desc: "Special veg fried rice"},
+        {cat: "Fried Rice", name: "Veg. Hakka Fried Rice", price: 190, type: "Veg", desc: "Hakka style veg rice"},
+        {cat: "Fried Rice", name: "Thai Veg Fried Rice", price: 220, type: "Veg", desc: "Thai style veg rice"},
+        {cat: "Fried Rice", name: "Paneer Fried Rice", price: 200, type: "Veg", desc: "Paneer fried rice"},
+        {cat: "Fried Rice", name: "Spl. Mushroom Fried Rice", price: 220, type: "Veg", desc: "Special mushroom fried rice"},
+        {cat: "Fried Rice", name: "Spl. Baby Corn Fried Rice", price: 220, type: "Veg", desc: "Special baby corn fried rice"},
+        {cat: "Fried Rice", name: "Spl. Paneer Fried Rice", price: 220, type: "Veg", desc: "Special paneer fried rice"},
+        {cat: "Fried Rice", name: "Jeera Rice", price: 140, type: "Veg", desc: "Cumin tempered rice"},
+        {cat: "Fried Rice", name: "Ghee Rice", price: 140, type: "Veg", desc: "Aromatic ghee rice"},
+        {cat: "Fried Rice", name: "Plain Rice", price: 40, type: "Veg", desc: "Steamed white rice"},
+        {cat: "Fried Rice", name: "Curd Rice", price: 70, type: "Veg", desc: "South Indian curd rice"},
+        {cat: "Curries - Non-Veg", name: "Sai Krishna Spl. Chicken Curry", price: 370, type: "Non-Veg", desc: "House special chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Chicken Curry With Bone", price: 220, type: "Non-Veg", desc: "Traditional bone-in chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Chicken Curry Boneless", price: 270, type: "Non-Veg", desc: "Boneless chicken gravies"},
+        {cat: "Curries - Non-Veg", name: "Chicken Patiyala", price: 320, type: "Non-Veg", desc: "Rich Patiala style gravy"},
+        {cat: "Curries - Non-Veg", name: "Chicken Noorani", price: 300, type: "Non-Veg", desc: "Rich creamy chicken gravy"},
+        {cat: "Curries - Non-Veg", name: "Chicken Man Pasand", price: 370, type: "Non-Veg", desc: "Chef choice special curry"},
+        {cat: "Curries - Non-Veg", name: "Chicken Moghalai Curry", price: 280, type: "Non-Veg", desc: "Mughlai style gravy"},
+        {cat: "Curries - Non-Veg", name: "Chicken Chittinadu", price: 350, type: "Non-Veg", desc: "Spicy Chettinad chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Kadai Chicken", price: 350, type: "Non-Veg", desc: "Kadai cooked chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Andhra Chicken", price: 350, type: "Non-Veg", desc: "Spicy Andhra chicken gravy"},
+        {cat: "Curries - Non-Veg", name: "Andhra Chicken with Bone Curry", price: 290, type: "Non-Veg", desc: "Andhra style bone chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Butter Chicken", price: 350, type: "Non-Veg", desc: "Rich creamy tomato butter chicken"},
+        {cat: "Curries - Non-Veg", name: "Chicken Khara Masala", price: 290, type: "Non-Veg", desc: "Whole spice chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Chicken Achari (B/L)", price: 350, type: "Non-Veg", desc: "Tangy achari gravy boneless"},
+        {cat: "Curries - Non-Veg", name: "Ginger Chicken", price: 300, type: "Non-Veg", desc: "Ginger flavored chicken gravy"},
+        {cat: "Curries - Non-Veg", name: "Chicken Kolapuri", price: 300, type: "Non-Veg", desc: "Spicy Kolhapuri style chicken"},
+        {cat: "Curries - Non-Veg", name: "Punjabi Chicken (B/L)", price: 350, type: "Non-Veg", desc: "Boneless Punjabi chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Punjabi Chicken with Bone", price: 300, type: "Non-Veg", desc: "Bone-in Punjabi chicken curry"},
+        {cat: "Curries - Non-Veg", name: "Kalmi Masala With Bone", price: 420, type: "Non-Veg", desc: "Kalmi kabab cooked in thick gravy"},
+        {cat: "Curries - Non-Veg", name: "Kalmi Masala (Half)", price: 250, type: "Non-Veg", desc: "Kalmi kabab cooked in thick gravy"},
+        {cat: "Curries - Non-Veg", name: "Hyderabadi Chicken Curry Bone", price: 290, type: "Non-Veg", desc: "Hyderabadi bone chicken gravy"},
+        {cat: "Curries - Non-Veg", name: "Hyderabadi Chicken Curry B/L", price: 350, type: "Non-Veg", desc: "Hyderabadi boneless chicken gravy"},
+        {cat: "Curries - Non-Veg", name: "Handi Chicken Curry With Bone", price: 270, type: "Non-Veg", desc: "Handi cooked chicken gravy"},
+        {cat: "Curries - Seafood & Mutton", name: "Mutton Curry With Bone", price: 370, type: "Non-Veg", desc: "Traditional bone mutton curry"},
+        {cat: "Curries - Seafood & Mutton", name: "Mutton Kurma With Bone", price: 390, type: "Non-Veg", desc: "Rich mutton korma"},
+        {cat: "Curries - Seafood & Mutton", name: "Mutton Masala With Bone", price: 390, type: "Non-Veg", desc: "Spiced mutton masala"},
+        {cat: "Curries - Seafood & Mutton", name: "Mutton Rogan Josh With Bone", price: 380, type: "Non-Veg", desc: "Kashmiri style rogan josh"},
+        {cat: "Curries - Seafood & Mutton", name: "Handi Mutton", price: 390, type: "Non-Veg", desc: "Handi cooked mutton gravy"},
+        {cat: "Curries - Seafood & Mutton", name: "Prawns Curry", price: 320, type: "Non-Veg", desc: "Classic prawn curry"},
+        {cat: "Curries - Seafood & Mutton", name: "Prawns Patiyala", price: 350, type: "Non-Veg", desc: "Patiala style prawn curry"},
+        {cat: "Curries - Seafood & Mutton", name: "Butter Prawns Masala", price: 370, type: "Non-Veg", desc: "Rich butter prawn gravy"},
+        {cat: "Curries - Seafood & Mutton", name: "Achari Prawns", price: 350, type: "Non-Veg", desc: "Tangy achari prawn gravy"},
+        {cat: "Curries - Seafood & Mutton", name: "Andhra Prawns Curry", price: 350, type: "Non-Veg", desc: "Spicy Andhra prawn gravy"},
+        {cat: "Curries - Seafood & Mutton", name: "Fish Curry", price: 320, type: "Non-Veg", desc: "Traditional fish curry"},
+        {cat: "Curries - Seafood & Mutton", name: "Fish Patiyala", price: 350, type: "Non-Veg", desc: "Patiala style fish gravy"},
+        {cat: "Curries - Seafood & Mutton", name: "Achari Fish", price: 350, type: "Non-Veg", desc: "Tangy achari fish gravy"},
+        {cat: "Curries - Egg", name: "Egg Curry", price: 90, type: "Egg", desc: "Egg gravy"},
+        {cat: "Curries - Egg", name: "Egg Masala", price: 100, type: "Egg", desc: "Spiced egg gravy"},
+        {cat: "Curries - Egg", name: "Egg Burji", price: 90, type: "Egg", desc: "Scrambled egg curry"},
+        {cat: "Curries - Egg", name: "Chilli Egg", price: 150, type: "Egg", desc: "Chilli garlic egg gravy"},
+        {cat: "Curries - Egg", name: "Egg Manchuria", price: 150, type: "Egg", desc: "Egg in Manchurian sauce"},
+        {cat: "Curries - Egg", name: "Egg 65", price: 150, type: "Egg", desc: "Deep fried egg 65"},
+        {cat: "Curries - Egg", name: "Dal Tadka With Egg", price: 100, type: "Egg", desc: "Lentil dal tempered with egg"},
+        {cat: "Curries - Veg", name: "Mixed Veg Curry", price: 140, type: "Veg", desc: "Mixed vegetable curry"},
+        {cat: "Curries - Veg", name: "Kadai Veg", price: 200, type: "Veg", desc: "Kadai vegetable gravy"},
+        {cat: "Curries - Veg", name: "Tawa Veg", price: 190, type: "Veg", desc: "Tawa cooked vegetable gravy"},
+        {cat: "Curries - Veg", name: "Veg Noorani", price: 200, type: "Veg", desc: "Rich vegetable gravy"},
+        {cat: "Curries - Veg", name: "Aloo Gobi Masala (Seasonal)", price: 130, type: "Veg", desc: "Potato and cauliflower curry"},
+        {cat: "Curries - Veg", name: "Gobi Masala", price: 130, type: "Veg", desc: "Cauliflower masala gravy"},
+        {cat: "Curries - Veg", name: "Aloo Mutter", price: 120, type: "Veg", desc: "Potato and green peas curry"},
+        {cat: "Curries - Veg", name: "Veg Jaipuri", price: 200, type: "Veg", desc: "Jaipuri style vegetable gravy"},
+        {cat: "Curries - Veg", name: "Veg Kolhapuri", price: 200, type: "Veg", desc: "Spicy Kolhapuri veg curry"},
+        {cat: "Curries - Veg", name: "Paneer Butter Masala", price: 220, type: "Veg", desc: "Rich tomato butter paneer gravy"},
+        {cat: "Curries - Veg", name: "Paneer Pasand", price: 270, type: "Veg", desc: "Chef special paneer gravy"},
+        {cat: "Curries - Veg", name: "Tawa Paneer", price: 240, type: "Veg", desc: "Tawa fried paneer gravy"},
+        {cat: "Curries - Veg", name: "Kadai Paneer", price: 240, type: "Veg", desc: "Kadai cooked paneer gravy"},
+        {cat: "Curries - Veg", name: "Kaju Paneer", price: 270, type: "Veg", desc: "Cashew and paneer gravy"},
+        {cat: "Curries - Veg", name: "Paneer Shahi Kurma", price: 250, type: "Veg", desc: "Royal shahi paneer korma"},
+        {cat: "Curries - Veg", name: "Paneer Methi Chaman", price: 270, type: "Veg", desc: "Paneer gravy with fenugreek"},
+        {cat: "Curries - Veg", name: "Palak Paneer", price: 200, type: "Veg", desc: "Spinach puree with cottage cheese"},
+        {cat: "Curries - Veg", name: "Mutter Paneer", price: 200, type: "Veg", desc: "Green peas and paneer curry"},
+        {cat: "Curries - Veg", name: "Kaju Tomato", price: 240, type: "Veg", desc: "Cashew and tomato gravy"},
+        {cat: "Curries - Veg", name: "Tomato Curry", price: 120, type: "Veg", desc: "Tangy tomato curry"},
+        {cat: "Curries - Veg", name: "Kaju Mushroom", price: 270, type: "Veg", desc: "Cashew and mushroom curry"},
+        {cat: "Curries - Veg", name: "Mushroom Curry", price: 220, type: "Veg", desc: "Classic mushroom gravy"},
+        {cat: "Curries - Veg", name: "Mushroom Masala", price: 230, type: "Veg", desc: "Spiced mushroom masala"},
+        {cat: "Curries - Veg", name: "Kadai Mushroom", price: 240, type: "Veg", desc: "Kadai cooked mushroom curry"},
+        {cat: "Curries - Veg", name: "Butter Mushroom", price: 240, type: "Veg", desc: "Butter mushroom gravy"},
+        {cat: "Curries - Veg", name: "Veg Shahi Kurma", price: 170, type: "Veg", desc: "Royal vegetable korma"},
+        {cat: "Curries - Veg", name: "Baby Corn Curry", price: 220, type: "Veg", desc: "Baby corn gravy"},
+        {cat: "Curries - Veg", name: "Baby Corn Masala", price: 230, type: "Veg", desc: "Spiced baby corn masala"},
+        {cat: "Curries - Veg", name: "Malai Kofta", price: 250, type: "Veg", desc: "Fried paneer balls in creamy gravy"},
+        {cat: "Curries - Veg", name: "Plain Palak", price: 120, type: "Veg", desc: "Tempered spinach gravy"},
+        {cat: "Curries - Veg", name: "Dal Fry", price: 90, type: "Veg", desc: "Tempered yellow lentils"}
     ];
+
+    let menuData = JSON.parse(localStorage.getItem('ssk_menu')) || fullDataset;
+    let currentCategory = "All";
+
+    function buildCategoryPills() {
+        const pillsContainer = document.getElementById('categoryPills');
+        const categories = ["All", ...new Set(menuData.map(i => i.cat))];
+        pillsContainer.innerHTML = '';
+
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = `pill ${cat === currentCategory ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => filterByCategory(cat);
+            pillsContainer.appendChild(btn);
+        });
+    }
+
+    function filterByCategory(cat) {
+        currentCategory = cat;
+        buildCategoryPills();
+        filterMenu();
+    }
 
     function renderMenu(items) {
         const container = document.getElementById('menuContainer');
         container.innerHTML = '';
+
+        if (items.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 20px; color:#aaa;">No dishes found.</p>';
+            return;
+        }
+
         const categories = [...new Set(items.map(i => i.cat))];
 
         categories.forEach(cat => {
@@ -73,7 +315,7 @@
                 card.className = 'item-card';
                 card.innerHTML = `
                     <div>
-                        <div class="item-name">${item.name} <span class="badge ${item.type.toLowerCase()}">${item.type}</span></div>
+                        <div class="item-name">${item.name} <span class="badge ${item.type.toLowerCase().replace(' ', '-')}">${item.type}</span></div>
                         <div class="item-desc">${item.desc}</div>
                     </div>
                     <div class="item-price">₹${item.price}</div>
@@ -86,14 +328,23 @@
 
     function filterMenu() {
         const query = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = menuData.filter(i => i.name.toLowerCase().includes(query) || i.cat.toLowerCase().includes(query));
+        let filtered = menuData;
+
+        if (currentCategory !== "All") {
+            filtered = filtered.filter(i => i.cat === currentCategory);
+        }
+
+        if (query) {
+            filtered = filtered.filter(i => i.name.toLowerCase().includes(query) || i.cat.toLowerCase().includes(query));
+        }
+
         renderMenu(filtered);
     }
 
     function openAdmin() {
         const pin = prompt("Enter Admin Passcode:");
-        if (pin === "1234") { // Change your security PIN here
-            const action = prompt("Options:\n1. Edit Price\n2. Add Item\n3. Reset Data\nEnter option number:");
+        if (pin === "1234") {
+            const action = prompt("Options:\n1. Update Price\n2. Add New Item\n3. Update Logo Image URL\n4. Reset to Default Data\nEnter option number:");
             if (action === "1") {
                 const itemName = prompt("Enter exact Item Name to update price:");
                 const item = menuData.find(i => i.name.toLowerCase() === itemName.toLowerCase());
@@ -106,12 +357,46 @@
                         renderMenu(menuData);
                     }
                 } else { alert("Item not found!"); }
+            } else if (action === "2") {
+                const cat = prompt("Category (e.g., Biryani, Soups):");
+                const name = prompt("Dish Name:");
+                const price = parseInt(prompt("Price (in ₹):"));
+                const type = prompt("Type (Veg, Non-Veg, Egg):");
+                const desc = prompt("Description:");
+                if (cat && name && price) {
+                    menuData.push({cat, name, price, type, desc: desc || ""});
+                    localStorage.setItem('ssk_menu', JSON.stringify(menuData));
+                    alert("New dish added!");
+                    buildCategoryPills();
+                    renderMenu(menuData);
+                }
+            } else if (action === "3") {
+                const logoUrl = prompt("Enter direct Image URL for your restaurant logo:");
+                if (logoUrl) {
+                    localStorage.setItem('ssk_logo', logoUrl);
+                    document.getElementById('restaurantLogo').src = logoUrl;
+                    alert("Logo updated!");
+                }
+            } else if (action === "4") {
+                if (confirm("Reset menu to default dataset?")) {
+                    localStorage.removeItem('ssk_menu');
+                    menuData = fullDataset;
+                    buildCategoryPills();
+                    renderMenu(menuData);
+                }
             }
         } else if (pin !== null) {
             alert("Incorrect PIN!");
         }
     }
 
+    // Load saved logo if present
+    const savedLogo = localStorage.getItem('ssk_logo');
+    if (savedLogo) {
+        document.getElementById('restaurantLogo').src = savedLogo;
+    }
+
+    buildCategoryPills();
     renderMenu(menuData);
 </script>
 </body>
